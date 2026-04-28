@@ -9,6 +9,7 @@ archivo_csv = "equipos.csv"
 # Crear archivo si no existe
 if not os.path.exists(archivo_csv):
     df = pd.DataFrame(columns=[
+        "Seleccionar",
         "Institucion",
         "Robot",
         "Categoria",
@@ -18,9 +19,16 @@ if not os.path.exists(archivo_csv):
     ])
     df.to_csv(archivo_csv, index=False)
 
+# Cargar datos
+df = pd.read_csv(archivo_csv)
+
+# Si no existe la columna Seleccionar, agregarla
+if "Seleccionar" not in df.columns:
+    df.insert(0, "Seleccionar", False)
+
+# FORMULARIO
 st.header("📋 Registro y Homologación")
 
-# 🔥 FORMULARIO
 with st.form("form_registro", clear_on_submit=True):
 
     institucion = st.text_input("🏫 Institución")
@@ -49,7 +57,8 @@ with st.form("form_registro", clear_on_submit=True):
         else:
             homologado = peso <= 3.5
 
-            nuevo_equipo = pd.DataFrame([{
+            nuevo = pd.DataFrame([{
+                "Seleccionar": False,
                 "Institucion": institucion,
                 "Robot": robot,
                 "Categoria": categoria,
@@ -58,15 +67,48 @@ with st.form("form_registro", clear_on_submit=True):
                 "Homologado": "Sí" if homologado else "No"
             }])
 
-            nuevo_equipo.to_csv(archivo_csv, mode='a', header=False, index=False)
+            df = pd.concat([df, nuevo], ignore_index=True)
+            df.to_csv(archivo_csv, index=False)
 
-            if homologado:
-                st.success("✅ Equipo registrado y homologado")
-            else:
-                st.error("❌ Equipo registrado pero NO homologado (excede 3.5 kg)")
+            st.success("✅ Equipo registrado")
 
-# Mostrar tabla
-df = pd.read_csv(archivo_csv)
+# 🔄 Editor interactivo
+st.header("📊 Gestión de Equipos")
 
-st.header("📊 Equipos registrados")
-st.dataframe(df, use_container_width=True)
+edited_df = st.data_editor(
+    df,
+    num_rows="dynamic",
+    use_container_width=True,
+    key="editor"
+)
+
+# 🔁 Recalcular homologación si editan peso
+edited_df["Homologado"] = edited_df["Peso"].apply(
+    lambda x: "Sí" if float(x) <= 3.5 else "No"
+)
+
+# 💾 Guardar cambios
+if st.button("💾 Guardar cambios"):
+    edited_df.to_csv(archivo_csv, index=False)
+    st.success("Cambios guardados correctamente")
+    st.rerun()
+
+# 🗑️ Eliminar con confirmación
+st.subheader("🗑️ Eliminar equipos seleccionados")
+
+seleccionados = edited_df[edited_df["Seleccionar"] == True]
+
+if not seleccionados.empty:
+    st.warning(f"⚠️ Vas a eliminar {len(seleccionados)} equipo(s)")
+
+    confirmar = st.checkbox("Confirmar eliminación")
+
+    if confirmar:
+        if st.button("❌ Eliminar definitivamente"):
+            df_filtrado = edited_df[edited_df["Seleccionar"] == False]
+            df_filtrado.to_csv(archivo_csv, index=False)
+
+            st.success("Equipos eliminados correctamente")
+            st.rerun()
+else:
+    st.info("No hay equipos seleccionados")
