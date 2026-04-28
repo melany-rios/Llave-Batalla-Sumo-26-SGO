@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.title("🤖 Batalla Robot Sumo 2026 - Registro de Equipos")
+st.title("🤖 Torneo Robot Sumo - Registro de Equipos")
 
-archivo_csv = "equipos2026.csv"
+archivo_csv = "equipos.csv"
 
 # Crear archivo si no existe
 if not os.path.exists(archivo_csv):
@@ -18,19 +18,31 @@ if not os.path.exists(archivo_csv):
     ])
     df.to_csv(archivo_csv, index=False)
 
-# Cargar datos
-df = pd.read_csv(archivo_csv)
+# Inicializar valores por defecto
+if "institucion" not in st.session_state:
+    st.session_state.institucion = ""
+    st.session_state.robot = ""
+    st.session_state.categoria = "Autónomos"
+    st.session_state.peso = 0.0
+    st.session_state.capitan = ""
 
 st.header("📋 Registro y Homologación")
 
-institucion = st.text_input("🏫 Institución")
-robot = st.text_input("🤖 Nombre del Robot")
+institucion = st.text_input("🏫 Institución", key="institucion")
+robot = st.text_input("🤖 Nombre del Robot", key="robot")
 categoria = st.selectbox(
     "🏁 Categoría",
-    ["Autónomos", "Radio Controlados", "Libre"]
+    ["Autónomos", "Radio Controlados", "Libre"],
+    key="categoria"
 )
-peso = st.number_input("⚖️ Peso del robot (kg)", min_value=0.0, max_value=5.0, step=0.1)
-capitan = st.text_input("🧑‍✈️ Capitán del equipo")
+peso = st.number_input(
+    "⚖️ Peso del robot (kg)",
+    min_value=0.0,
+    max_value=5.0,
+    step=0.1,
+    key="peso"
+)
+capitan = st.text_input("🧑‍✈️ Capitán del equipo", key="capitan")
 
 if st.button("Registrar equipo"):
     if not institucion or not robot or not capitan:
@@ -52,11 +64,19 @@ if st.button("Registrar equipo"):
         if homologado:
             st.success("✅ Equipo registrado y homologado")
         else:
-            st.error("❌ Equipo registrado pero NO homologado (excede 3.5 kg)")
+            st.error("❌ Equipo registrado pero NO homologado")
 
-# Recargar datos actualizados
+        # 🔥 RESET DE CAMPOS
+        st.session_state.institucion = ""
+        st.session_state.robot = ""
+        st.session_state.categoria = "Autónomos"
+        st.session_state.peso = 0.0
+        st.session_state.capitan = ""
+
+        st.rerun()  # refresca la app
+
+# Mostrar tabla
 df = pd.read_csv(archivo_csv)
 
 st.header("📊 Equipos registrados")
-
 st.dataframe(df, use_container_width=True)
