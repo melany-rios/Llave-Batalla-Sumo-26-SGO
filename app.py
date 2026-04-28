@@ -39,7 +39,8 @@ peso = st.number_input(
     "⚖️ Peso del robot (kg)",
     min_value=0.0,
     max_value=5.0,
-    step=0.1,
+    step=0.001,
+    format="%.3f",
     key="peso"
 )
 capitan = st.text_input("🧑‍✈️ Capitán del equipo", key="capitan")
