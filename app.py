@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.title("🤖 Torneo Robot Sumo - Registro de Equipos")
+st.title("Torneo Robot Sumo - Registro de Equipos")
 
 archivo_csv = "equipos.csv"
 
