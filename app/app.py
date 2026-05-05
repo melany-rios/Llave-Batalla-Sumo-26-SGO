@@ -1,8 +1,8 @@
-st.set_page_config(layout="wide")
 import streamlit as st
 import pandas as pd
 import os
 import random
+st.set_page_config(layout="wide")
 
 st.title("Torneo Robot Sumo - Registro de Equipos")
 
