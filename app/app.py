@@ -381,36 +381,32 @@ def mostrar_combate(equipoA, equipoB):
         </div>
         """, unsafe_allow_html=True)
 
-def calcular_tabla(grupo):
+def calcular_tabla(rondas):
 
     stats = {}
 
-    # Inicializar equipos
-    for equipo in grupo:
-        nombre = equipo["Robot"]
-
-        stats[nombre] = {
-            "Equipo": nombre,
-            "PJ": 0,
-            "PG": 0,
-            "PE": 0,
-            "PP": 0,
-            "PTS": 0
-        }
-
-    # Recorrer combates
-    for ronda in grupo:
+    for ronda in rondas:
         for combate in ronda:
 
             equipoA = combate.get("equipoA")
             equipoB = combate.get("equipoB")
             resultado = combate.get("resultado")
 
-            if not equipoA or not equipoB or not resultado:
+            if not equipoA or not equipoB:
                 continue
 
             A = equipoA["Robot"]
             B = equipoB["Robot"]
+
+            # Inicializar si no existen
+            if A not in stats:
+                stats[A] = {"Equipo": A, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "PTS": 0}
+            if B not in stats:
+                stats[B] = {"Equipo": B, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "PTS": 0}
+
+            # Solo contar si hay resultado
+            if not resultado:
+                continue
 
             stats[A]["PJ"] += 1
             stats[B]["PJ"] += 1
@@ -433,11 +429,11 @@ def calcular_tabla(grupo):
 
     df_tabla = pd.DataFrame(stats.values())
 
-    # Ordenar
-    df_tabla = df_tabla.sort_values(
-        by=["PTS", "PG"],
-        ascending=False
-    ).reset_index(drop=True)
+    if not df_tabla.empty:
+        df_tabla = df_tabla.sort_values(
+            by=["PTS", "PG"],
+            ascending=False
+        ).reset_index(drop=True)
 
     return df_tabla
 
