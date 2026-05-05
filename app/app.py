@@ -4,6 +4,41 @@ import os
 import random
 st.set_page_config(layout="wide")
 
+def mostrar_combate(equipoA, equipoB):
+
+    col1, col2, col3 = st.columns([5,1,5])
+
+    with col1:
+        st.markdown(f"""
+        <div style='
+            padding:30px;
+            border-radius:15px;
+            border:3px solid #00ADB5;
+            text-align:center;
+            font-size:28px;
+            font-weight:bold;
+        '>
+        🤖 {equipoA}
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("<h2 style='text-align:center;'>VS</h2>", unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div style='
+            padding:30px;
+            border-radius:15px;
+            border:3px solid #FF5722;
+            text-align:center;
+            font-size:28px;
+            font-weight:bold;
+        '>
+        🤖 {equipoB}
+        </div>
+        """, unsafe_allow_html=True)
+
 st.title("Torneo Robot Sumo - Registro de Equipos")
 
 archivo_csv = "equipos.csv"
