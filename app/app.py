@@ -311,34 +311,36 @@ if "fixtures" in st.session_state:
 
                     equipoA = combate.get("equipoA")
                     equipoB = combate.get("equipoB")
-
+                
                     if not equipoA or not equipoB:
                         continue
-
+                
+                    # 🔥 asegurar estructura
+                    if "resultado" not in combate:
+                        combate["resultado"] = None
+                
                     nombreA = equipoA["Robot"]
                     nombreB = equipoB["Robot"]
-
-                    # 🎨 visual
+                
                     mostrar_combate(nombreA, nombreB)
-
-                    # 🔑 clave única por combate
+                
                     key = f"{categoria}_{g_idx}_{r_idx}_{c_idx}"
-
-                    # selector resultado
+                
+                    opciones = ["Equipo A", "Equipo B", "Empate"]
+                    resultado_actual = combate.get("resultado")
+                
+                    index = opciones.index(resultado_actual) if resultado_actual in opciones else 0
+                
                     resultado = st.radio(
                         "Resultado",
-                        ["Equipo A", "Equipo B", "Empate"],
-                        index=(
-                            ["Equipo A", "Equipo B", "Empate"].index(combate["resultado"])
-                            if combate["resultado"] else 0
-                        ),
+                        opciones,
+                        index=index,
                         key=key,
                         horizontal=True
                     )
-
-                    # guardar resultado
+                
                     st.session_state.fixtures[categoria][g_idx]["rondas"][r_idx][c_idx]["resultado"] = resultado
-
+                
                     st.markdown("---")
 
 if st.button("💾 Guardar resultados"):
