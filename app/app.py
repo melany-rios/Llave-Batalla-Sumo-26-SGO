@@ -1,12 +1,15 @@
 import streamlit as st
 import pandas as pd
 import os
+import random
 
 st.title("Torneo Robot Sumo - Registro de Equipos")
 
 archivo_csv = "equipos.csv"
 
-# Crear archivo si no existe
+# =========================
+# CREAR CSV SI NO EXISTE
+# =========================
 if not os.path.exists(archivo_csv):
     df = pd.DataFrame(columns=[
         "Seleccionar",
@@ -19,14 +22,17 @@ if not os.path.exists(archivo_csv):
     ])
     df.to_csv(archivo_csv, index=False)
 
-# Cargar datos
+# =========================
+# CARGAR DATOS
+# =========================
 df = pd.read_csv(archivo_csv)
 
-# Si no existe la columna Seleccionar, agregarla
 if "Seleccionar" not in df.columns:
     df.insert(0, "Seleccionar", False)
 
+# =========================
 # FORMULARIO
+# =========================
 st.header("📋 Registro y Homologación")
 
 with st.form("form_registro", clear_on_submit=True):
@@ -53,7 +59,7 @@ with st.form("form_registro", clear_on_submit=True):
 
     if submit:
         if not institucion or not robot or not capitan:
-            st.warning("⚠️ Completá todos los campos obligatorios")
+            st.warning("⚠️ Completá todos los campos")
         else:
             homologado = peso <= 3.5
 
@@ -71,70 +77,68 @@ with st.form("form_registro", clear_on_submit=True):
             df.to_csv(archivo_csv, index=False)
 
             st.success("✅ Equipo registrado")
+            st.rerun()
 
-# 🔄 Editor interactivo
+# =========================
+# TABLA EDITABLE
+# =========================
 st.header("📊 Gestión de Equipos")
 
 edited_df = st.data_editor(
     df,
     num_rows="dynamic",
-    use_container_width=True,
-    key="editor"
+    use_container_width=True
 )
 
-# 🔁 Recalcular homologación si editan peso
+# Recalcular homologación
 edited_df["Homologado"] = edited_df["Peso"].apply(
     lambda x: "Sí" if float(x) <= 3.5 else "No"
 )
 
-# 💾 Guardar cambios
 if st.button("💾 Guardar cambios"):
     edited_df.to_csv(archivo_csv, index=False)
-    st.success("Cambios guardados correctamente")
+    st.success("Cambios guardados")
     st.rerun()
 
-# 🗑️ Eliminar con confirmación
-st.subheader("🗑️ Eliminar equipos seleccionados")
+# =========================
+# ELIMINAR
+# =========================
+st.subheader("🗑️ Eliminar equipos")
 
 seleccionados = edited_df[edited_df["Seleccionar"] == True]
 
 if not seleccionados.empty:
-    st.warning(f"⚠️ Vas a eliminar {len(seleccionados)} equipo(s)")
+    st.warning(f"Eliminar {len(seleccionados)} equipo(s)")
 
-    confirmar = st.checkbox("Confirmar eliminación")
-
-    if confirmar:
-        if st.button("❌ Eliminar definitivamente"):
+    if st.checkbox("Confirmar eliminación"):
+        if st.button("Eliminar"):
             df_filtrado = edited_df[edited_df["Seleccionar"] == False]
             df_filtrado.to_csv(archivo_csv, index=False)
-
-            st.success("Equipos eliminados correctamente")
+            st.success("Eliminados correctamente")
             st.rerun()
-else:
-    st.info("No hay equipos seleccionados")
 
-import random
-
-def generar_grupos_balanceados(equipos, max_por_grupo=4):
+# =========================
+# GRUPOS
+# =========================
+def generar_grupos_balanceados(equipos):
+    random.shuffle(equipos)
     total = len(equipos)
 
     if total <= 4:
         return [equipos]
 
-    # calcular cantidad de grupos
-    num_grupos = total // max_por_grupo
-    resto = total % max_por_grupo
+    num_grupos = total // 4
+    resto = total % 4
 
-    # si sobra 1 → redistribuir para evitar grupo de 1
     if resto == 1:
         num_grupos -= 1
-        resto += max_por_grupo
+        resto += 4
 
     grupos = []
     inicio = 0
 
     for i in range(num_grupos):
-        size = max_por_grupo
+        size = 4
         if resto > 0:
             size -= 1
             resto -= 1
@@ -142,19 +146,16 @@ def generar_grupos_balanceados(equipos, max_por_grupo=4):
         grupos.append(equipos[inicio:inicio+size])
         inicio += size
 
-    # agregar últimos si quedan
     if inicio < total:
         grupos.append(equipos[inicio:])
 
     return grupos
 
-st.header("🏆 Generación de Grupos")
+st.header("🏆 Generar Grupos")
 
-if st.button("🎯 Generar grupos por categoría"):
+if st.button("🎯 Generar grupos"):
 
     df = pd.read_csv(archivo_csv)
-
-    # Solo homologados
     df_validos = df[df["Homologado"] == "Sí"]
 
     if df_validos.empty:
@@ -162,40 +163,41 @@ if st.button("🎯 Generar grupos por categoría"):
     else:
         grupos_generados = {}
 
-        categorias = df_validos["Categoria"].unique()
+        for categoria in df_validos["Categoria"].unique():
 
-        for categoria in categorias:
-            equipos_cat = df_validos[df_validos["Categoria"] == categoria]
-            equipos_lista = equipos_cat.to_dict("records")
-
-            random.shuffle(equipos_lista)
-
-            grupos = generar_grupos_balanceados(equipos_lista)
+            equipos = df_validos[df_validos["Categoria"] == categoria].to_dict("records")
+            grupos = generar_grupos_balanceados(equipos)
 
             grupos_generados[categoria] = grupos
 
         st.session_state.grupos = grupos_generados
 
-        st.success("✅ Grupos generados correctamente")
+        # 🔥 limpiar fixtures viejos
+        st.session_state.pop("fixtures", None)
 
+        st.success("Grupos generados")
+
+# Mostrar grupos
 if "grupos" in st.session_state:
 
-    st.header("📊 Grupos generados")
+    st.header("📊 Grupos")
 
     for categoria, grupos in st.session_state.grupos.items():
 
-        st.subheader(f"🏁 Categoría: {categoria}")
+        st.subheader(categoria)
 
         for i, grupo in enumerate(grupos):
             st.markdown(f"**Grupo {i+1}**")
 
             for equipo in grupo:
-                st.write(f"- {equipo['Robot']} ({equipo['Institucion']})")
+                st.write(f"- {equipo['Robot']}")
 
-def generar_fixture_round_robin(grupo):
+# =========================
+# FIXTURE ROUND ROBIN
+# =========================
+def generar_fixture(grupo):
     equipos = grupo.copy()
 
-    # Si es impar, agregamos descanso (bye)
     if len(equipos) % 2 != 0:
         equipos.append(None)
 
@@ -206,28 +208,29 @@ def generar_fixture_round_robin(grupo):
         ronda = []
 
         for j in range(n // 2):
-            equipoA = equipos[j]
-            equipoB = equipos[n - 1 - j]
+            a = equipos[j]
+            b = equipos[n - 1 - j]
 
-            if equipoA and equipoB:
+            if a and b:
                 ronda.append({
-                    "equipoA": equipoA,
-                    "equipoB": equipoB,
-                    "resultado": None
+                    "equipoA": a,
+                    "equipoB": b
                 })
 
         rondas.append(ronda)
 
-        # Rotación (algoritmo clásico)
         equipos = [equipos[0]] + [equipos[-1]] + equipos[1:-1]
 
     return rondas
 
-st.header("🥊 Generar Fixture")
+# =========================
+# GENERAR FIXTURE
+# =========================
+st.header("🥊 Fixture")
 
 if "grupos" in st.session_state:
 
-    if st.button("⚔️ Generar combates (Round Robin)"):
+    if st.button("⚔️ Generar combates"):
 
         fixtures = {}
 
@@ -237,36 +240,41 @@ if "grupos" in st.session_state:
 
             for i, grupo in enumerate(grupos):
 
-                fixture_grupo = generar_fixture_round_robin(grupo)
+                rondas = generar_fixture(grupo)
 
                 fixtures[categoria].append({
-                    "grupo": i + 1,
-                    "combates": fixture_grupo
+                    "grupo": i+1,
+                    "rondas": rondas
                 })
 
         st.session_state.fixtures = fixtures
 
-        st.success("✅ Fixture generado correctamente")
+        st.success("Fixture generado")
 
+# =========================
+# MOSTRAR FIXTURE
+# =========================
 if "fixtures" in st.session_state:
 
-    st.header("📅 Combates por rondas")
+    st.header("📅 Combates")
 
     for categoria, grupos in st.session_state.fixtures.items():
 
-        st.subheader(f"🏁 Categoría: {categoria}")
+        st.subheader(categoria)
 
         for grupo in grupos:
 
             st.markdown(f"**Grupo {grupo['grupo']}**")
 
-            for i, ronda in enumerate(grupo["combates"]):
+            for i, ronda in enumerate(grupo["rondas"]):
 
                 st.markdown(f"🔵 Ronda {i+1}")
 
                 for combate in ronda:
 
-                    equipoA = combate["equipoA"]["Robot"]
-                    equipoB = combate["equipoB"]["Robot"]
-
-                    st.write(f"🥊 {equipoA} vs {equipoB}")
+                    try:
+                        a = combate["equipoA"]["Robot"]
+                        b = combate["equipoB"]["Robot"]
+                        st.write(f"🥊 {a} vs {b}")
+                    except:
+                        st.error(f"Error en combate: {combate}")
