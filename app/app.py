@@ -261,21 +261,30 @@ if "fixtures" in st.session_state:
 
     for categoria, grupos in st.session_state.fixtures.items():
 
-        st.markdown(f"# 🏁 {categoria}")
+        st.subheader(f"🏁 {categoria}")
 
-        for combate in ronda:
+        for grupo in grupos:
 
-            equipoA = combate.get("equipoA")
-            equipoB = combate.get("equipoB")
-        
-            if not equipoA or not equipoB:
-                continue
-        
-            a = equipoA.get("Robot", "Sin nombre")
-            b = equipoB.get("Robot", "Sin nombre")
-        
-            mostrar_combate(a, b)
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"## Grupo {grupo['grupo']}")
+
+            # 👉 ESTE for es clave
+            for i, ronda in enumerate(grupo["rondas"]):
+
+                st.markdown(f"### 🔵 Ronda {i+1}")
+
+                for combate in ronda:
+
+                    equipoA = combate.get("equipoA")
+                    equipoB = combate.get("equipoB")
+
+                    if not equipoA or not equipoB:
+                        continue
+
+                    a = equipoA.get("Robot", "Sin nombre")
+                    b = equipoB.get("Robot", "Sin nombre")
+
+                    mostrar_combate(a, b)
+                    st.markdown("<br>", unsafe_allow_html=True)
 
 def mostrar_combate(equipoA, equipoB):
 
