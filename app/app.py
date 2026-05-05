@@ -191,3 +191,17 @@ if "grupos" in st.session_state:
 
             for equipo in grupo:
                 st.write(f"- {equipo['Robot']} ({equipo['Institucion']})")
+
+def generar_fixture_grupo(grupo):
+    fixture = []
+    
+    for i in range(len(grupo)):
+        for j in range(i + 1, len(grupo)):
+            combate = {
+                "equipoA": grupo[i],
+                "equipoB": grupo[j],
+                "resultado": None
+            }
+            fixture.append(combate)
+    
+    return fixture
