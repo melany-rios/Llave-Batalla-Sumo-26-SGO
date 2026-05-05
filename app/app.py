@@ -250,7 +250,8 @@ def generar_fixture(grupo):
             if a and b:
                 ronda.append({
                     "equipoA": a,
-                    "equipoB": b
+                    "equipoB": b,
+                    "resultado": None
                 })
 
         rondas.append(ronda)
@@ -292,22 +293,21 @@ if "grupos" in st.session_state:
 # =========================
 if "fixtures" in st.session_state:
 
-    st.header("📺 Pantalla de Combates")
+    st.header("📺 Combates + Resultados")
 
     for categoria, grupos in st.session_state.fixtures.items():
 
         st.subheader(f"🏁 {categoria}")
 
-        for grupo in grupos:
+        for g_idx, grupo in enumerate(grupos):
 
             st.markdown(f"## Grupo {grupo['grupo']}")
 
-            # 👉 ESTE for es clave
-            for i, ronda in enumerate(grupo["rondas"]):
+            for r_idx, ronda in enumerate(grupo["rondas"]):
 
-                st.markdown(f"### 🔵 Ronda {i+1}")
+                st.markdown(f"### 🔵 Ronda {r_idx+1}")
 
-                for combate in ronda:
+                for c_idx, combate in enumerate(ronda):
 
                     equipoA = combate.get("equipoA")
                     equipoB = combate.get("equipoB")
@@ -315,11 +315,34 @@ if "fixtures" in st.session_state:
                     if not equipoA or not equipoB:
                         continue
 
-                    a = equipoA.get("Robot", "Sin nombre")
-                    b = equipoB.get("Robot", "Sin nombre")
+                    nombreA = equipoA["Robot"]
+                    nombreB = equipoB["Robot"]
 
-                    mostrar_combate(a, b)
-                    st.markdown("<br>", unsafe_allow_html=True)
+                    # 🎨 visual
+                    mostrar_combate(nombreA, nombreB)
+
+                    # 🔑 clave única por combate
+                    key = f"{categoria}_{g_idx}_{r_idx}_{c_idx}"
+
+                    # selector resultado
+                    resultado = st.radio(
+                        "Resultado",
+                        ["Equipo A", "Equipo B", "Empate"],
+                        index=(
+                            ["Equipo A", "Equipo B", "Empate"].index(combate["resultado"])
+                            if combate["resultado"] else 0
+                        ),
+                        key=key,
+                        horizontal=True
+                    )
+
+                    # guardar resultado
+                    st.session_state.fixtures[categoria][g_idx]["rondas"][r_idx][c_idx]["resultado"] = resultado
+
+                    st.markdown("---")
+
+if st.button("💾 Guardar resultados"):
+    st.success("Resultados guardados en memoria")
 
 def mostrar_combate(equipoA, equipoB):
 
