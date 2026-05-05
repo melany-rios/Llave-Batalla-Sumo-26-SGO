@@ -261,9 +261,12 @@ if "fixtures" in st.session_state:
             st.markdown(f"**Grupo {grupo['grupo']}**")
 
             for i, ronda in enumerate(grupo["combates"]):
+
                 st.markdown(f"🔵 Ronda {i+1}")
 
                 for combate in ronda:
-                    st.write(
-                        f"🥊 {combate['equipoA']['Robot']} vs {combate['equipoB']['Robot']}"
-                    )
+
+                    equipoA = combate["equipoA"]["Robot"]
+                    equipoB = combate["equipoB"]["Robot"]
+
+                    st.write(f"🥊 {equipoA} vs {equipoB}")
