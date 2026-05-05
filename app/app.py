@@ -205,3 +205,28 @@ def generar_fixture_grupo(grupo):
             fixture.append(combate)
     
     return fixture
+
+st.header("🥊 Generar Fixture")
+
+if "grupos" in st.session_state:
+
+    if st.button("⚔️ Generar combates (Round Robin)"):
+
+        fixtures = {}
+
+        for categoria, grupos in st.session_state.grupos.items():
+
+            fixtures[categoria] = []
+
+            for i, grupo in enumerate(grupos):
+
+                fixture_grupo = generar_fixture_grupo(grupo)
+
+                fixtures[categoria].append({
+                    "grupo": i + 1,
+                    "combates": fixture_grupo
+                })
+
+        st.session_state.fixtures = fixtures
+
+        st.success("✅ Fixture generado correctamente")
