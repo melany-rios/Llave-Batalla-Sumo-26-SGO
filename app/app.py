@@ -177,3 +177,17 @@ if st.button("🎯 Generar grupos por categoría"):
         st.session_state.grupos = grupos_generados
 
         st.success("✅ Grupos generados correctamente")
+
+if "grupos" in st.session_state:
+
+    st.header("📊 Grupos generados")
+
+    for categoria, grupos in st.session_state.grupos.items():
+
+        st.subheader(f"🏁 Categoría: {categoria}")
+
+        for i, grupo in enumerate(grupos):
+            st.markdown(f"**Grupo {i+1}**")
+
+            for equipo in grupo:
+                st.write(f"- {equipo['Robot']} ({equipo['Institucion']})")
