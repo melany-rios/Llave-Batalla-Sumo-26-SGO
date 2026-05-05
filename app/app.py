@@ -192,19 +192,36 @@ if "grupos" in st.session_state:
             for equipo in grupo:
                 st.write(f"- {equipo['Robot']} ({equipo['Institucion']})")
 
-def generar_fixture_grupo(grupo):
-    fixture = []
-    
-    for i in range(len(grupo)):
-        for j in range(i + 1, len(grupo)):
-            combate = {
-                "equipoA": grupo[i],
-                "equipoB": grupo[j],
-                "resultado": None
-            }
-            fixture.append(combate)
-    
-    return fixture
+def generar_fixture_round_robin(grupo):
+    equipos = grupo.copy()
+
+    # Si es impar, agregamos descanso (bye)
+    if len(equipos) % 2 != 0:
+        equipos.append(None)
+
+    n = len(equipos)
+    rondas = []
+
+    for i in range(n - 1):
+        ronda = []
+
+        for j in range(n // 2):
+            equipoA = equipos[j]
+            equipoB = equipos[n - 1 - j]
+
+            if equipoA and equipoB:
+                ronda.append({
+                    "equipoA": equipoA,
+                    "equipoB": equipoB,
+                    "resultado": None
+                })
+
+        rondas.append(ronda)
+
+        # Rotación (algoritmo clásico)
+        equipos = [equipos[0]] + [equipos[-1]] + equipos[1:-1]
+
+    return rondas
 
 st.header("🥊 Generar Fixture")
 
@@ -220,7 +237,7 @@ if "grupos" in st.session_state:
 
             for i, grupo in enumerate(grupos):
 
-                fixture_grupo = generar_fixture_grupo(grupo)
+                fixture_grupo = generar_fixture_round_robin(grupo)
 
                 fixtures[categoria].append({
                     "grupo": i + 1,
@@ -233,7 +250,7 @@ if "grupos" in st.session_state:
 
 if "fixtures" in st.session_state:
 
-    st.header("📅 Combates")
+    st.header("📅 Combates por rondas")
 
     for categoria, grupos in st.session_state.fixtures.items():
 
@@ -243,9 +260,10 @@ if "fixtures" in st.session_state:
 
             st.markdown(f"**Grupo {grupo['grupo']}**")
 
-            for combate in grupo["combates"]:
+            for i, ronda in enumerate(grupo["combates"]):
+                st.markdown(f"🔵 Ronda {i+1}")
 
-                equipoA = combate["equipoA"]["Robot"]
-                equipoB = combate["equipoB"]["Robot"]
-
-                st.write(f"🥊 {equipoA} vs {equipoB}")
+                for combate in ronda:
+                    st.write(
+                        f"🥊 {combate['equipoA']['Robot']} vs {combate['equipoB']['Robot']}"
+                    )
