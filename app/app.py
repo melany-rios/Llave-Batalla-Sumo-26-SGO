@@ -1,3 +1,4 @@
+st.set_page_config(layout="wide")
 import streamlit as st
 import pandas as pd
 import os
@@ -256,25 +257,63 @@ if "grupos" in st.session_state:
 # =========================
 if "fixtures" in st.session_state:
 
-    st.header("📅 Combates")
+    st.header("📺 Pantalla de Combates")
 
     for categoria, grupos in st.session_state.fixtures.items():
 
-        st.subheader(categoria)
+        st.markdown(f"# 🏁 {categoria}")
 
         for grupo in grupos:
 
-            st.markdown(f"**Grupo {grupo['grupo']}**")
+            st.markdown(f"## Grupo {grupo['grupo']}")
 
             for i, ronda in enumerate(grupo["rondas"]):
 
-                st.markdown(f"🔵 Ronda {i+1}")
+                st.markdown(f"### 🔵 Ronda {i+1}")
 
                 for combate in ronda:
 
                     try:
                         a = combate["equipoA"]["Robot"]
                         b = combate["equipoB"]["Robot"]
-                        st.write(f"🥊 {a} vs {b}")
+
+                        mostrar_combate(a, b)
+                        st.markdown("<br>", unsafe_allow_html=True)
+
                     except:
                         st.error(f"Error en combate: {combate}")
+
+def mostrar_combate(equipoA, equipoB):
+
+    col1, col2, col3 = st.columns([5,1,5])
+
+    with col1:
+        st.markdown(f"""
+        <div style='
+            padding:30px;
+            border-radius:15px;
+            border:3px solid #00ADB5;
+            text-align:center;
+            font-size:28px;
+            font-weight:bold;
+        '>
+        🤖 {equipoA}
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("<h2 style='text-align:center;'>VS</h2>", unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div style='
+            padding:30px;
+            border-radius:15px;
+            border:3px solid #FF5722;
+            text-align:center;
+            font-size:28px;
+            font-weight:bold;
+        '>
+        🤖 {equipoB}
+        </div>
+        """, unsafe_allow_html=True)
