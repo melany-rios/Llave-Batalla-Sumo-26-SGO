@@ -230,3 +230,22 @@ if "grupos" in st.session_state:
         st.session_state.fixtures = fixtures
 
         st.success("✅ Fixture generado correctamente")
+
+if "fixtures" in st.session_state:
+
+    st.header("📅 Combates")
+
+    for categoria, grupos in st.session_state.fixtures.items():
+
+        st.subheader(f"🏁 Categoría: {categoria}")
+
+        for grupo in grupos:
+
+            st.markdown(f"**Grupo {grupo['grupo']}**")
+
+            for combate in grupo["combates"]:
+
+                equipoA = combate["equipoA"]["Robot"]
+                equipoB = combate["equipoB"]["Robot"]
+
+                st.write(f"🥊 {equipoA} vs {equipoB}")
