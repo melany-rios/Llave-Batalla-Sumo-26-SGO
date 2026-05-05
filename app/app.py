@@ -380,3 +380,84 @@ def mostrar_combate(equipoA, equipoB):
         🤖 {equipoB}
         </div>
         """, unsafe_allow_html=True)
+
+def calcular_tabla(grupo):
+
+    stats = {}
+
+    # Inicializar equipos
+    for equipo in grupo:
+        nombre = equipo["Robot"]
+
+        stats[nombre] = {
+            "Equipo": nombre,
+            "PJ": 0,
+            "PG": 0,
+            "PE": 0,
+            "PP": 0,
+            "PTS": 0
+        }
+
+    # Recorrer combates
+    for ronda in grupo:
+        for combate in ronda:
+
+            equipoA = combate.get("equipoA")
+            equipoB = combate.get("equipoB")
+            resultado = combate.get("resultado")
+
+            if not equipoA or not equipoB or not resultado:
+                continue
+
+            A = equipoA["Robot"]
+            B = equipoB["Robot"]
+
+            stats[A]["PJ"] += 1
+            stats[B]["PJ"] += 1
+
+            if resultado == "Equipo A":
+                stats[A]["PG"] += 1
+                stats[A]["PTS"] += 3
+                stats[B]["PP"] += 1
+
+            elif resultado == "Equipo B":
+                stats[B]["PG"] += 1
+                stats[B]["PTS"] += 3
+                stats[A]["PP"] += 1
+
+            elif resultado == "Empate":
+                stats[A]["PE"] += 1
+                stats[B]["PE"] += 1
+                stats[A]["PTS"] += 1
+                stats[B]["PTS"] += 1
+
+    df_tabla = pd.DataFrame(stats.values())
+
+    # Ordenar
+    df_tabla = df_tabla.sort_values(
+        by=["PTS", "PG"],
+        ascending=False
+    ).reset_index(drop=True)
+
+    return df_tabla
+
+st.header("📊 Tabla de posiciones")
+
+if "fixtures" in st.session_state:
+
+    for categoria, grupos in st.session_state.fixtures.items():
+
+        st.subheader(f"🏁 {categoria}")
+
+        for grupo in grupos:
+
+            st.markdown(f"### Grupo {grupo['grupo']}")
+
+            tabla = calcular_tabla(grupo["rondas"])
+
+            st.dataframe(tabla, use_container_width=True)
+
+def resaltar_top(df):
+    return ['background-color: #00FFAA' if i < 2 else '' for i in range(len(df))]
+
+st.dataframe(tabla.style.apply(resaltar_top, axis=0))
