@@ -273,15 +273,13 @@ if "fixtures" in st.session_state:
 
                 for combate in ronda:
 
-                    try:
-                        a = combate["equipoA"]["Robot"]
-                        b = combate["equipoB"]["Robot"]
+                    equipoA = combate["equipoA"]
+                    equipoB = combate["equipoB"]
 
-                        mostrar_combate(a, b)
-                        st.markdown("<br>", unsafe_allow_html=True)
-
-                    except:
-                        st.error(f"Error en combate: {combate}")
+                    a = equipoA.get("Robot", "Sin nombre")
+                    b = equipoB.get("Robot", "Sin nombre")
+                    
+                    mostrar_combate(a, b)
 
 def mostrar_combate(equipoA, equipoB):
 
