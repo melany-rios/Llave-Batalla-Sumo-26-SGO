@@ -112,3 +112,68 @@ if not seleccionados.empty:
             st.rerun()
 else:
     st.info("No hay equipos seleccionados")
+
+import random
+
+def generar_grupos_balanceados(equipos, max_por_grupo=4):
+    total = len(equipos)
+
+    if total <= 4:
+        return [equipos]
+
+    # calcular cantidad de grupos
+    num_grupos = total // max_por_grupo
+    resto = total % max_por_grupo
+
+    # si sobra 1 → redistribuir para evitar grupo de 1
+    if resto == 1:
+        num_grupos -= 1
+        resto += max_por_grupo
+
+    grupos = []
+    inicio = 0
+
+    for i in range(num_grupos):
+        size = max_por_grupo
+        if resto > 0:
+            size -= 1
+            resto -= 1
+
+        grupos.append(equipos[inicio:inicio+size])
+        inicio += size
+
+    # agregar últimos si quedan
+    if inicio < total:
+        grupos.append(equipos[inicio:])
+
+    return grupos
+
+st.header("🏆 Generación de Grupos")
+
+if st.button("🎯 Generar grupos por categoría"):
+
+    df = pd.read_csv(archivo_csv)
+
+    # Solo homologados
+    df_validos = df[df["Homologado"] == "Sí"]
+
+    if df_validos.empty:
+        st.warning("No hay equipos homologados")
+    else:
+        grupos_generados = {}
+
+        categorias = df_validos["Categoria"].unique()
+
+        for categoria in categorias:
+            equipos_cat = df_validos[df_validos["Categoria"] == categoria]
+            equipos_lista = equipos_cat.to_dict("records")
+
+            random.shuffle(equipos_lista)
+
+            grupos = generar_grupos_balanceados(equipos_lista)
+
+            grupos_generados[categoria] = grupos
+
+        st.session_state.grupos = grupos_generados
+
+        st.success("✅ Grupos generados correctamente")
